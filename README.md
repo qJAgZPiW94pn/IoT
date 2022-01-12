@@ -1,7 +1,7 @@
 # IoT
 **智慧魚缸**
 ---
-Observe the enviroment tempurature around the fish tank sensor of Raspberry pi, and use LINE communication software to control USB lighting, feeder, obtain historical temperature and humidity on Cacti and real-tiime images.
+Depoly tempurature sendsor, camera, SG-90 servo motor of Raspberry pi around fish tank and use LINE communication software to obtain the real-time tempurature, real-time image, historical temperature and humidity, control USB lighting, and feeder.
 
 
 ---
