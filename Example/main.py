@@ -73,7 +73,7 @@ def callback():
 
         message = event.message.text
         reply = event.message.text
-
+        
         if message.count('顯示現在溫度'):
             temperature = function.temperature()
             line_bot_api.reply_message(event.reply_token,TextSendMessage(text="現在溫度是" + str(temperature) + "度C"))
@@ -81,13 +81,19 @@ def callback():
             ngrok_url = function.get_ngrok_url()
             exec(open("download_graph_45.py").read())
             line_bot_api.reply_message(event.reply_token,ImageSendMessage(original_content_url = ngrok_url + "/static/cacti_graph_45.png" , preview_image_url = ngrok_url + "/static/cacti_graph_45.png"))
-
-
         elif message.count('拍張照'):
             exec(open("capture.py").read())
             ngrok_url = function.get_ngrok_url()
             line_bot_api.reply_message(event.reply_token,ImageSendMessage(original_content_url = ngrok_url + "/static/LiveImage.jpg" , preview_image_url = ngrok_url + "/static/LiveImage.jpg"))
-
+        elif message.count('開燈'):
+            os.system ("sudo uhubctl -l 2 -a 1")
+            line_bot_api.reply_message(event.reply_token,TextSendMessage(text="已開啟LED燈光"))
+        elif message.count('關燈'):
+            os.system ("sudo uhubctl -l 2 -a 0")
+            line_bot_api.reply_message(event.reply_token,TextSendMessage(text="已關閉LED燈光"))
+        elif message.count('餵飼料'):
+            os.system('python3 sg90.py')
+            line_bot_api.reply_message(event.reply_token,TextSendMessage(text="餵食完畢"))
         else:
             line_bot_api.reply_message(
             event.reply_token,
