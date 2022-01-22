@@ -7,12 +7,19 @@ Depoly tempurature sendsor, camera, SG-90 servo motor of Raspberry pi around fis
 ---
 實際照片
 ---
+![](https://i.imgur.com/baGfD3G.jpg)
+
+![](https://i.imgur.com/De9NLCk.jpg)
+![](https://i.imgur.com/NIuQV9c.jpg)
+
+
+
 
 
 ---
 影片連結
 ---
-
+https://youtu.be/DzL7SGvpZpE
 
 ---
 使用硬體材料
@@ -20,6 +27,7 @@ Depoly tempurature sendsor, camera, SG-90 servo motor of Raspberry pi around fis
 * Raspberry pi 4b *1
 * DHT22 Temperature Humidity Sensor Module *1 https://www.sparkfun.com/products/10167
 * 外接USB LED燈
+* sg90伺服馬達
 
 ---
 使用軟體
@@ -123,7 +131,7 @@ def temperature():
 
 Step 5. LINE Message API 回傳歷史溫度紀錄 (Image message)
 ---
-* 根據LINE Message API documentation說明，Bot回傳的Image URL必須使用HTTPS及TLS 1.2 或更高版本，並且僅能傳送PNG或是JPEG檔案。
+* 根據LINE Message API documentation說明，Bot回傳的Image必須是HTTPS URL及使用TLS 1.2加密或更高版本，並且僅能傳送PNG或是JPEG檔案。因此不能直接將回傳圖片的路徑指向本機資料夾內的某個檔案，這大大加深了難度。
 > Image message說明
 > https://developers.line.biz/en/reference/messaging-api/#image-message
 
@@ -181,8 +189,56 @@ def get_ngrok_url():
     return res_json["tunnels"][0]["public_url"]
 ```
 
+Step 6. 控制餵食器
+---
+* 這個部份設定為接收到訊息時控制SG90伺服馬達，但是要進行轉速控制，否則來回的速度太快會把掉下的飼料打到到處都是
 
-Step 6. 設定Rich menu
+程式主要部份：
+
+* main
+```
+elif message.count('餵飼料'):
+    os.system('python3 sg90.py')
+    line_bot_api.reply_message(event.reply_token,
+    TextSendMessage(text="餵食完畢"))
+```
+* sg90.py
+
+```
+import time
+import RPi.GPIO as GPIO
+
+CONTROL_PIN = 17
+PWM_FREQ = 50
+STEP=15
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(CONTROL_PIN, GPIO.OUT)
+
+pwm = GPIO.PWM(CONTROL_PIN, PWM_FREQ)
+pwm.start(0)
+
+def angle_to_duty_cycle(angle=0):
+    duty_cycle = (0.05 * PWM_FREQ) + (0.19 * PWM_FREQ * angle / 180)
+    return duty_cycle
+
+for angle in range(0, 60, 10):
+        dc = angle_to_duty_cycle(angle)
+        pwm.ChangeDutyCycle(dc)
+        time.sleep(0.1)
+
+for angle in range(60, -1, -10):
+        dc = angle_to_duty_cycle(angle)
+        pwm.ChangeDutyCycle(dc)
+        time.sleep(0.1)
+
+pwm.stop()
+GPIO.cleanup()
+```
+> RASPBERRY PI 3 MOBEL B 利用 PWM 控制伺服馬達
+> https://blog.everlearn.tw/%e7%95%b6-python-%e9%81%87%e4%b8%8a-raspberry-pi/raspberry-pi-3-mobel-3-%e5%88%a9%e7%94%a8-pwm-%e6%8e%a7%e5%88%b6%e4%bc%ba%e6%9c%8d%e9%a6%ac%e9%81%94
+
+Step 7. 設定Rich menu
 ---
 1. 這邊是設計Bot介面的圖文選單，我這邊直接用LINE線上的LINE offical Account Manager功能設計rich menu，這個方法最多可支援六個指令
 ![](https://i.imgur.com/DmBABFN.png)
@@ -203,6 +259,10 @@ Step 6. 設定Rich menu
 > https://static.line-scdn.net/biz-app/16bd9ea9e03/manager/static/LINE_rich_menu_design_template.zip
 
 ---
+完整程式碼
+---
+https://github.com/qJAgZPiW94pn/IoT
+
 
 ---
 Reference
@@ -245,3 +305,6 @@ https://www.meccanismocomplesso.org/en/picamera-python-how-to-add-text-on-images
 
 TAIWANIOT
 https://www.taiwaniot.com.tw/
+
+RASPBERRY PI 3 MOBEL B 利用 PWM 控制伺服馬達
+https://blog.everlearn.tw/%e7%95%b6-python-%e9%81%87%e4%b8%8a-raspberry-pi/raspberry-pi-3-mobel-3-%e5%88%a9%e7%94%a8-pwm-%e6%8e%a7%e5%88%b6%e4%bc%ba%e6%9c%8d%e9%a6%ac%e9%81%94
