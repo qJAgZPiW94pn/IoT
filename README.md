@@ -19,7 +19,7 @@ Depoly tempurature sendsor, camera, SG-90 servo motor of Raspberry pi around fis
 ---
 影片連結
 ---
-https://youtu.be/DzL7SGvpZpE
+https://youtu.be/gs6Pcj3StGc
 
 ---
 使用硬體材料
